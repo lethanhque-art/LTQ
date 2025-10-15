@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { type SharpenSettings } from '../types';
+import { type RestorationSettings } from '../types';
 
 interface ToggleSwitchProps {
   label: string;
@@ -20,8 +19,8 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ label, checked, onChange })
 );
 
 interface SettingsPanelProps {
-  settings: SharpenSettings;
-  onSettingsChange: (settings: SharpenSettings) => void;
+  settings: RestorationSettings;
+  onSettingsChange: (settings: RestorationSettings) => void;
   onRestore: () => void;
   onReset: () => void;
   isProcessing: boolean;
@@ -30,7 +29,7 @@ interface SettingsPanelProps {
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChange, onRestore, onReset, isProcessing, hasImage }) => {
     
-    const handleOptionChange = (option: keyof SharpenSettings['options'], value: boolean) => {
+    const handleOptionChange = (option: keyof RestorationSettings['options'], value: boolean) => {
         onSettingsChange({
             ...settings,
             options: {
@@ -40,36 +39,54 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettin
         });
     };
 
-  const optionToggles: { key: keyof SharpenSettings['options']; label: string }[] = [
-    { key: 'enhanceDetails', label: 'Tăng cường chi tiết nhỏ' },
-    { key: 'reduceNoise', label: 'Giảm nhiễu (noise)' },
-    { key: 'fixBlur', label: 'Khử mờ do chuyển động' },
-    { key: 'naturalLook', label: 'Giữ vẻ tự nhiên' },
+  const optionToggles: { key: keyof RestorationSettings['options']; label: string }[] = [
+    { key: 'restoreColor', label: 'Khôi phục màu sắc' },
+    { key: 'redrawHair', label: 'Vẽ lại tóc chi tiết' },
+    { key: 'isAsian', label: 'Người châu Á (tóc đen)' },
+    { key: 'redrawClothing', label: 'Vẽ lại trang phục' },
+    { key: 'sharpenBackground', label: 'Làm rõ nét hậu cảnh' },
+    { key: 'adhereToFace', label: 'Bám theo chi tiết khuôn mặt gốc' },
+    { key: 'redrawDetails', label: 'Phục hồi tranh và vẽ lại chi tiết' },
+    { key: 'removeYellowing', label: 'Khử ố vàng và phai màu' },
   ];
 
   return (
     <aside className="w-80 bg-slate-800/50 border-l border-slate-700/50 flex flex-col flex-shrink-0">
       <div className="p-4 border-b border-slate-700/50">
-        <h2 className="text-lg font-bold text-white">Làm nét ảnh</h2>
-        <p className="text-xs text-slate-400 mt-1">Tăng cường độ sắc nét và chi tiết cho các bức ảnh bị mờ, out nét.</p>
+        <h2 className="text-lg font-bold text-white">Phục chế ảnh cũ</h2>
+        <p className="text-xs text-slate-400 mt-1">Khắc phục các vết xước, rách, và phai màu. Cải thiện chi tiết và làm cho ảnh trông như mới.</p>
       </div>
       <div className="flex-1 p-4 space-y-6 overflow-y-auto">
         <div>
-          <label htmlFor="level" className="block text-sm font-medium text-slate-300 mb-1">Mức độ làm nét</label>
-          <select id="level" value={settings.level} onChange={e => onSettingsChange({...settings, level: e.target.value as SharpenSettings['level']})} className="w-full bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-sm text-white focus:ring-blue-500 focus:border-blue-500">
+          <label htmlFor="level" className="block text-sm font-medium text-slate-300 mb-1">Mức độ phục chế</label>
+          <select id="level" value={settings.level} onChange={e => onSettingsChange({...settings, level: e.target.value as RestorationSettings['level']})} className="w-full bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-sm text-white focus:ring-blue-500 focus:border-blue-500">
             <option>Nhẹ</option>
             <option>Vừa</option>
             <option>Mạnh</option>
           </select>
         </div>
         <div>
-          <label htmlFor="imageType" className="block text-sm font-medium text-slate-300 mb-1">Loại ảnh</label>
-          <select id="imageType" value={settings.imageType} onChange={e => onSettingsChange({...settings, imageType: e.target.value as SharpenSettings['imageType']})} className="w-full bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-sm text-white focus:ring-blue-500 focus:border-blue-500">
-            <option>Tổng thể</option>
-            <option>Chân dung</option>
-            <option>Phong cảnh</option>
-            <option>Sản phẩm</option>
+          <label htmlFor="background" className="block text-sm font-medium text-slate-300 mb-1">Phóng nền</label>
+          <select id="background" value={settings.background} onChange={e => onSettingsChange({...settings, background: e.target.value as RestorationSettings['background']})} className="w-full bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-sm text-white focus:ring-blue-500 focus:border-blue-500">
+            <option>Giữ nguyên</option>
           </select>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="gender" className="block text-sm font-medium text-slate-300 mb-1">Giới tính</label>
+            <select id="gender" value={settings.gender} onChange={e => onSettingsChange({...settings, gender: e.target.value as RestorationSettings['gender']})} className="w-full bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-sm text-white focus:ring-blue-500 focus:border-blue-500">
+              <option>Tự động</option>
+              <option>Nam</option>
+              <option>Nữ</option>
+              <option>Khác</option>
+            </select>
+          </div>
+          {settings.gender !== 'Tự động' && (
+            <div>
+              <label htmlFor="age" className="block text-sm font-medium text-slate-300 mb-1">Độ tuổi</label>
+              <input type="number" id="age" value={settings.age} onChange={e => onSettingsChange({...settings, age: parseInt(e.target.value, 10) || 0})} className="w-full bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-sm text-white focus:ring-blue-500 focus:border-blue-500" />
+            </div>
+          )}
         </div>
          <div>
           <label htmlFor="fineTune" className="block text-sm font-medium text-slate-300 mb-1">Tinh chỉnh ảnh</label>
@@ -79,7 +96,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettin
             value={settings.fineTunePrompt}
             onChange={e => onSettingsChange({ ...settings, fineTunePrompt: e.target.value })}
             className="w-full bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-sm text-white focus:ring-blue-500 focus:border-blue-500"
-            placeholder='Mô tả thêm các thay đổi bạn muốn, ví dụ: "tập trung làm nét khuôn mặt".'
+            placeholder='Mô tả thêm các thay đổi bạn muốn, ví dụ: "làm cho da sáng hơn một chút".'
           />
         </div>
         <div>
@@ -102,7 +119,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettin
             disabled={isProcessing || !hasImage}
             className="w-full bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-md text-sm transition-colors hover:bg-blue-700 disabled:bg-slate-500 disabled:cursor-not-allowed flex items-center justify-center"
         >
-            {isProcessing ? 'Đang xử lý...' : 'Làm nét ảnh'}
+            {isProcessing ? 'Đang xử lý...' : 'Phục chế ảnh'}
         </button>
         <button 
             onClick={onReset}

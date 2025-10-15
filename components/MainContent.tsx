@@ -1,13 +1,18 @@
-
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef } from 'react';
 import { Spinner } from './Spinner';
 
 interface MainContentProps {
   originalImage: string | null;
-  restoredImage: string | null;
+  processedImage: string | null;
   isLoading: boolean;
   error: string | null;
   onImageUpload: (file: File) => void;
+  animatedVideoUrl: string | null;
+  onAnimatedVideoClose: () => void;
+  isPostProcessing: boolean;
+  postProcessingError: string | null;
+  onAnimate360: () => void;
+  onUpscaleToRes: (resolution: '4K' | '8K' | '16K') => void;
 }
 
 const UploadPlaceholder: React.FC<{ onClick: () => void }> = ({ onClick }) => (
@@ -21,8 +26,8 @@ const UploadPlaceholder: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   </div>
 );
 
-const ImageComparator: React.FC<{ original: string; restored: string }> = ({ original, restored }) => {
-    const [sliderPosition, setSliderPosition] = useState(50);
+const ImageComparator: React.FC<{ original: string; processed: string }> = ({ original, processed }) => {
+    const [sliderPosition, setSliderPosition] = React.useState(50);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -76,7 +81,7 @@ const ImageComparator: React.FC<{ original: string; restored: string }> = ({ ori
                 className="absolute inset-0 w-full h-full overflow-hidden" 
                 style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
             >
-                <img src={restored} alt="Restored" className="absolute inset-0 w-full h-full object-contain" />
+                <img src={processed} alt="Processed" className="absolute inset-0 w-full h-full object-contain" />
             </div>
             <div 
                 className="absolute top-0 bottom-0 w-1 bg-white/50 cursor-ew-resize"
@@ -94,7 +99,7 @@ const ActionButton: React.FC<{ icon: React.ReactNode; label: string; onClick?: (
     <button 
       onClick={onClick}
       disabled={disabled}
-      className="flex flex-col items-center justify-center gap-2 px-3 py-2 rounded-lg bg-slate-700 hover:bg-blue-600 transition-colors disabled:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-white"
+      className="flex flex-col items-center justify-center gap-2 px-3 py-2 rounded-lg bg-slate-700 hover:bg-blue-600 transition-colors disabled:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed text-white"
     >
       {icon}
       <span className="text-xs font-semibold">{label}</span>
@@ -104,10 +109,16 @@ const ActionButton: React.FC<{ icon: React.ReactNode; label: string; onClick?: (
 
 export const MainContent: React.FC<MainContentProps> = ({
   originalImage,
-  restoredImage,
+  processedImage,
   isLoading,
   error,
   onImageUpload,
+  animatedVideoUrl,
+  onAnimatedVideoClose,
+  isPostProcessing,
+  postProcessingError,
+  onAnimate360,
+  onUpscaleToRes,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -123,13 +134,46 @@ export const MainContent: React.FC<MainContentProps> = ({
   };
 
   const handleDownload = () => {
-    if (!restoredImage) return;
+    if (!processedImage) return;
     const link = document.createElement('a');
-    link.href = restoredImage;
-    link.download = 'restored-image.png';
+    link.href = processedImage;
+    link.download = 'processed-image.png';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const MainView: React.FC = () => {
+    if (animatedVideoUrl) {
+      return (
+        <div className="w-full h-full flex flex-col items-center justify-center gap-4">
+          <video src={animatedVideoUrl} controls autoPlay loop className="max-w-full max-h-[85%] object-contain rounded-md" />
+          <button onClick={onAnimatedVideoClose} className="bg-slate-700 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition-colors">
+            Back to Image
+          </button>
+        </div>
+      );
+    }
+
+    if (isLoading) return <Spinner />;
+    if (error) return <div className="text-red-400 text-center">{error}</div>;
+
+    if (originalImage && processedImage) {
+      return <ImageComparator original={originalImage} processed={processedImage} />;
+    }
+
+    if (originalImage) {
+      return (
+        <div className="relative w-full h-full flex items-center justify-center">
+            <img src={originalImage} alt="Original" className="max-w-full max-h-full object-contain rounded-md" />
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/50 px-3 py-1 rounded-full text-xs">
+                Ảnh gốc
+            </div>
+        </div>
+      );
+    }
+
+    return <UploadPlaceholder onClick={handlePlaceholderClick} />;
   };
 
   return (
@@ -142,54 +186,43 @@ export const MainContent: React.FC<MainContentProps> = ({
         accept="image/*"
       />
       <div className="flex-1 bg-slate-800/50 rounded-lg flex items-center justify-center p-4 relative min-h-0">
-          {isLoading && <Spinner />}
-          {error && !isLoading && <div className="text-red-400 text-center">{error}</div>}
+          {isPostProcessing && <Spinner />}
+          {postProcessingError && !isPostProcessing && <div className="absolute text-red-400 text-center z-20 bg-slate-900/80 p-4 rounded-lg">{postProcessingError}</div>}
           
-          {!isLoading && !error && originalImage && restoredImage && (
-              <ImageComparator original={originalImage} restored={restoredImage} />
-          )}
-
-          {!isLoading && !error && originalImage && !restoredImage && (
-              <img src={originalImage} alt="Original" className="max-w-full max-h-full object-contain rounded-md" />
-          )}
-
-          {!originalImage && !isLoading && !error && (
-            <UploadPlaceholder onClick={handlePlaceholderClick} />
-          )}
-          
-          {originalImage && !restoredImage && !isLoading && !error && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/50 px-3 py-1 rounded-full text-xs">
-                Ảnh gốc
-            </div>
-          )}
+          <MainView />
       </div>
 
-      {restoredImage && (
+      {processedImage && !animatedVideoUrl && (
         <div className="grid grid-cols-5 gap-4">
            <ActionButton 
               icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3.5a.75.75 0 01.75.75v1.512c4.113.243 7.25 3.23 7.25 6.738 0 3.32-2.508 6.22-5.75 6.737v-1.512a.75.75 0 01-1.5 0v-1.512c-4.113-.243-7.25-3.23-7.25-6.737 0-3.32 2.508-6.22 5.75-6.738V4.25A.75.75 0 0110 3.5z" /></svg>}
               label="Tạo ảnh động 360°"
-              disabled
+              onClick={onAnimate360}
+              disabled={isPostProcessing}
            />
            <ActionButton
               icon={<span className="font-bold text-sm">4K</span>}
               label="Nâng cấp 4K"
-              disabled
+              onClick={() => onUpscaleToRes('4K')}
+              disabled={isPostProcessing}
            />
            <ActionButton
               icon={<span className="font-bold text-sm">8K</span>}
               label="Nâng cấp 8K"
-              disabled
+              onClick={() => onUpscaleToRes('8K')}
+              disabled={isPostProcessing}
            />
            <ActionButton
               icon={<span className="font-bold text-sm">16K</span>}
               label="Nâng cấp 16K"
-              disabled
+              onClick={() => onUpscaleToRes('16K')}
+              disabled={isPostProcessing}
            />
            <ActionButton
               icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" /></svg>}
               label="Tải xuống"
               onClick={handleDownload}
+              disabled={isPostProcessing}
            />
         </div>
       )}

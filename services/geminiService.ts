@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Modality } from "@google/genai";
 
 const API_KEY = process.env.API_KEY;
@@ -43,4 +42,43 @@ export const editImage = async (base64ImageData: string, mimeType: string, promp
     console.error("Error calling Gemini API:", error);
     throw new Error("Failed to process image with Gemini API.");
   }
+};
+
+
+export const generateVideoFromImage = async (base64ImageData: string, mimeType: string, prompt: string): Promise<string> => {
+    try {
+        let operation = await ai.models.generateVideos({
+            model: 'veo-2.0-generate-001',
+            prompt: prompt,
+            image: {
+                imageBytes: base64ImageData,
+                mimeType: mimeType,
+            },
+            config: {
+                numberOfVideos: 1
+            }
+        });
+
+        while (!operation.done) {
+            await new Promise(resolve => setTimeout(resolve, 10000));
+            operation = await ai.operations.getVideosOperation({ operation: operation });
+        }
+
+        const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+
+        if (!downloadLink) {
+            throw new Error("Video generation succeeded but no download link was found.");
+        }
+        
+        const response = await fetch(`${downloadLink}&key=${API_KEY}`);
+        if (!response.ok) {
+            throw new Error(`Failed to download video: ${response.statusText}`);
+        }
+        const videoBlob = await response.blob();
+        return URL.createObjectURL(videoBlob);
+
+    } catch (error) {
+        console.error("Error calling Veo API:", error);
+        throw new Error("Failed to generate video with Veo API.");
+    }
 };
