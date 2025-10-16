@@ -37,22 +37,22 @@ export const initialSettings: RestorationSettings = {
   },
 };
 
-export interface SharpenSettings {
+export interface EnhancementSettings {
   level: number;
-}
-
-export const initialSharpenSettings: SharpenSettings = {
-  level: 50,
-};
-
-export interface UpscaleSettings {
-  enhancementLevel: number;
   removeWatermark: boolean;
 }
 
-export const initialUpscaleSettings: UpscaleSettings = {
-  enhancementLevel: 2,
+export const initialEnhancementSettings: EnhancementSettings = {
+  level: 50,
   removeWatermark: false,
+};
+
+export interface UpscaleSettings {
+  scale: 2 | 4;
+}
+
+export const initialUpscaleSettings: UpscaleSettings = {
+  scale: 2,
 };
 
 // --- New Types ---

@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Modality } from "@google/genai";
 
 const API_KEY = process.env.API_KEY;
@@ -48,7 +49,7 @@ export const editImage = async (base64ImageData: string, mimeType: string, promp
 export const generateVideoFromImage = async (base64ImageData: string, mimeType: string, prompt: string): Promise<string> => {
     try {
         let operation = await ai.models.generateVideos({
-            model: 'veo-3.1-fast-generate-preview',
+            model: 'veo-3.1-generate-preview',
             prompt: prompt,
             image: {
                 imageBytes: base64ImageData,

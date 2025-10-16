@@ -5,7 +5,7 @@ import { MainContent } from './components/MainContent';
 
 // Settings Panels
 import { SettingsPanel } from './components/SettingsPanel';
-import { SharpenSettingsPanel } from './components/SharpenSettingsPanel';
+import { EnhancementSettingsPanel } from './components/SharpenSettingsPanel'; // Repurposed from Sharpen
 import { UpscaleSettingsPanel } from './components/UpscaleSettingsPanel';
 import { IDPhotoSettingsPanel } from './components/IDPhotoSettingsPanel';
 import { DocumentRestorationSettingsPanel } from './components/DocumentRestorationSettingsPanel';
@@ -31,7 +31,7 @@ const App: React.FC = () => {
 
   // State for all tools
   const [restorationSettings, setRestorationSettings] = useState<types.RestorationSettings>(types.initialSettings);
-  const [sharpenSettings, setSharpenSettings] = useState<types.SharpenSettings>(types.initialSharpenSettings);
+  const [enhancementSettings, setEnhancementSettings] = useState<types.EnhancementSettings>(types.initialEnhancementSettings);
   const [upscaleSettings, setUpscaleSettings] = useState<types.UpscaleSettings>(types.initialUpscaleSettings);
   const [idPhotoSettings, setIDPhotoSettings] = useState<types.IDPhotoSettings>(types.initialIDPhotoSettings);
   const [docRestoreSettings, setDocRestoreSettings] = useState<types.DocumentRestorationSettings>(types.initialDocumentRestorationSettings);
@@ -84,7 +84,7 @@ const App: React.FC = () => {
   const handleReset = (clearOriginal: boolean = true) => {
     // Reset all settings
     setRestorationSettings(types.initialSettings);
-    setSharpenSettings(types.initialSharpenSettings);
+    setEnhancementSettings(types.initialEnhancementSettings);
     setUpscaleSettings(types.initialUpscaleSettings);
     setIDPhotoSettings(types.initialIDPhotoSettings);
     setDocRestoreSettings(types.initialDocumentRestorationSettings);
@@ -150,20 +150,20 @@ const App: React.FC = () => {
   };
   const handleRestore = () => handleGenericEdit(generateRestorationPrompt);
 
-  const generateSharpenPrompt = () => `Please sharpen this image... Apply a ${sharpenSettings.level > 66 ? 'strong' : sharpenSettings.level < 33 ? 'light' : 'medium'} level...`;
-  const handleSharpen = () => handleGenericEdit(generateSharpenPrompt);
-
-  const generateUpscalePrompt = () => {
+  const generateEnhancementPrompt = () => {
     const promptParts = [
-        `Perform a super enhancement on this image to improve its quality significantly. Increase its resolution by ${upscaleSettings.enhancementLevel}x.`,
+        `Perform a super enhancement on this image to improve its quality significantly. Apply a ${enhancementSettings.level > 66 ? 'strong' : enhancementSettings.level < 33 ? 'light' : 'medium'} level of enhancement.`,
         `Unblur any motion or focus issues, remove digital noise and grain, and restore fine details, especially in faces and textures, to make the image incredibly sharp and clear.`,
         `The final result should be of professional quality.`
     ];
-    if (upscaleSettings.removeWatermark) {
+    if (enhancementSettings.removeWatermark) {
         promptParts.push("Also, identify and completely remove any watermarks, seamlessly filling in the background.");
     }
     return promptParts.join(' ');
   };
+  const handleEnhance = () => handleGenericEdit(generateEnhancementPrompt);
+
+  const generateUpscalePrompt = () => `Upscale this image, increasing its resolution by ${upscaleSettings.scale}x. Maintain as much detail as possible from the original image.`;
   const handleUpscale = () => handleGenericEdit(generateUpscalePrompt);
 
   const generateIDPhotoPrompt = () => `Edit this portrait to be a standard ID photo. Change the background to a solid ${idPhotoSettings.background === 'Xanh' ? 'blue' : 'white'} color. ${idPhotoSettings.standardizeClothing ? 'If the clothing is very casual, subtly change it to a more formal collared shirt or blouse.': ''} Ensure the person is centered and facing forward.`;
@@ -318,8 +318,8 @@ const App: React.FC = () => {
 
     switch (activeTool) {
       case 'Phục chế ảnh cũ': return (<><MainContent {...mainContentProps} /><SettingsPanel settings={restorationSettings} onSettingsChange={setRestorationSettings} onRestore={handleRestore} {...commonSettingsProps} /></>);
-      case 'Làm nét ảnh': return (<><MainContent {...mainContentProps} /><SharpenSettingsPanel settings={sharpenSettings} onSettingsChange={setSharpenSettings} onSharpen={handleSharpen} {...commonSettingsProps} /></>);
-      case 'Super Enhancement & Upscale Image': return (<><MainContent {...mainContentProps} /><UpscaleSettingsPanel settings={upscaleSettings} onSettingsChange={setUpscaleSettings} onUpscale={handleUpscale} {...commonSettingsProps} /></>);
+      case 'Super Enhancement': return (<><MainContent {...mainContentProps} /><EnhancementSettingsPanel settings={enhancementSettings} onSettingsChange={setEnhancementSettings} onEnhance={handleEnhance} {...commonSettingsProps} /></>);
+      case 'Upscale ảnh': return (<><MainContent {...mainContentProps} /><UpscaleSettingsPanel settings={upscaleSettings} onSettingsChange={setUpscaleSettings} onUpscale={handleUpscale} {...commonSettingsProps} /></>);
       case 'Chỉnh sửa ảnh thẻ': return (<><MainContent {...mainContentProps} /><IDPhotoSettingsPanel settings={idPhotoSettings} onSettingsChange={setIDPhotoSettings} onProcess={handleIDPhoto} {...commonSettingsProps} /></>);
       case 'Phục chế giấy tờ': return (<><MainContent {...mainContentProps} /><DocumentRestorationSettingsPanel settings={docRestoreSettings} onSettingsChange={setDocRestoreSettings} onProcess={handleDocRestore} {...commonSettingsProps} /></>);
       case 'Ảnh cưới AI': return (<><MainContent {...mainContentProps} /><WeddingPhotoSettingsPanel settings={weddingPhotoSettings} onSettingsChange={setWeddingPhotoSettings} onProcess={handleWeddingPhoto} {...commonSettingsProps} /></>);
