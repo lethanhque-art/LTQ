@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const menuItems = [
@@ -9,6 +8,7 @@ const menuItems = [
   { name: 'Tạo ảnh Trend', icon: 'trend' },
   { name: 'Thay nền', icon: 'background' },
   { name: 'Làm sạch nền', icon: 'clean' },
+  { name: 'Làm sạch ảnh', icon: 'clean' },
   { name: 'Super Enhancement', icon: 'enhance' },
   { name: 'Upscale ảnh', icon: 'upscale' },
   { name: 'Làm mịn da', icon: 'smooth' },

@@ -110,6 +110,14 @@ export const initialCleanBackgroundSettings: CleanBackgroundSettings = {
   level: 50,
 };
 
+export interface CleanImageSettings {
+  level: number;
+}
+
+export const initialCleanImageSettings: CleanImageSettings = {
+  level: 50,
+};
+
 export interface SkinSmoothingSettings {
   level: number;
 }

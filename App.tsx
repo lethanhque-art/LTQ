@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { MainContent } from './components/MainContent';
@@ -13,6 +12,7 @@ import { WeddingPhotoSettingsPanel } from './components/WeddingPhotoSettingsPane
 import { TrendPhotoSettingsPanel } from './components/TrendPhotoSettingsPanel';
 import { ChangeBackgroundSettingsPanel } from './components/ChangeBackgroundSettingsPanel';
 import { CleanBackgroundSettingsPanel } from './components/CleanBackgroundSettingsPanel';
+import { CleanImageSettingsPanel } from './components/CleanImageSettingsPanel';
 import { SkinSmoothingSettingsPanel } from './components/SkinSmoothingSettingsPanel';
 import { StraightenFaceSettingsPanel } from './components/StraightenFaceSettingsPanel';
 import { BWPhotoSettingsPanel } from './components/BWPhotoSettingsPanel';
@@ -39,6 +39,7 @@ const App: React.FC = () => {
   const [trendPhotoSettings, setTrendPhotoSettings] = useState<types.TrendPhotoSettings>(types.initialTrendPhotoSettings);
   const [changeBgSettings, setChangeBgSettings] = useState<types.ChangeBackgroundSettings>(types.initialChangeBackgroundSettings);
   const [cleanBgSettings, setCleanBgSettings] = useState<types.CleanBackgroundSettings>(types.initialCleanBackgroundSettings);
+  const [cleanImageSettings, setCleanImageSettings] = useState<types.CleanImageSettings>(types.initialCleanImageSettings);
   const [skinSmoothSettings, setSkinSmoothSettings] = useState<types.SkinSmoothingSettings>(types.initialSkinSmoothingSettings);
   const [straightenFaceSettings, setStraightenFaceSettings] = useState<types.StraightenFaceSettings>(types.initialStraightenFaceSettings);
   const [bwPhotoSettings, setBwPhotoSettings] = useState<types.BWPhotoSettings>(types.initialBWPhotoSettings);
@@ -92,6 +93,7 @@ const App: React.FC = () => {
     setTrendPhotoSettings(types.initialTrendPhotoSettings);
     setChangeBgSettings(types.initialChangeBackgroundSettings);
     setCleanBgSettings(types.initialCleanBackgroundSettings);
+    setCleanImageSettings(types.initialCleanImageSettings);
     setSkinSmoothSettings(types.initialSkinSmoothingSettings);
     setStraightenFaceSettings(types.initialStraightenFaceSettings);
     setBwPhotoSettings(types.initialBWPhotoSettings);
@@ -184,6 +186,9 @@ const App: React.FC = () => {
   const generateCleanBgPrompt = () => `Clean the background of this image. Identify and remove any distracting elements, objects, or people from the background. The final result should have the main subject on a clean, unobtrusive background. Apply a ${cleanBgSettings.level > 66 ? 'strong' : cleanBgSettings.level < 33 ? 'light' : 'medium'} level of cleaning.`;
   const handleCleanBg = () => handleGenericEdit(generateCleanBgPrompt);
   
+  const generateCleanImagePrompt = () => `Clean this image. Remove digital noise, grain, and compression artifacts. Apply a ${cleanImageSettings.level > 66 ? 'strong' : cleanImageSettings.level < 33 ? 'light' : 'medium'} level of cleaning to make the image look clearer and sharper without losing important details.`;
+  const handleCleanImage = () => handleGenericEdit(generateCleanImagePrompt);
+
   const generateSkinSmoothPrompt = () => `Retouch the skin of the person in this photo. Smooth out blemishes and wrinkles while maintaining a natural skin texture. Apply a ${skinSmoothSettings.level > 66 ? 'strong' : skinSmoothSettings.level < 33 ? 'light' : 'medium'} level of smoothing.`;
   const handleSkinSmooth = () => handleGenericEdit(generateSkinSmoothPrompt);
 
@@ -326,6 +331,7 @@ const App: React.FC = () => {
       case 'Tạo ảnh Trend': return (<><MainContent {...mainContentProps} /><TrendPhotoSettingsPanel settings={trendPhotoSettings} onSettingsChange={setTrendPhotoSettings} onProcess={handleTrendPhoto} {...commonSettingsProps} /></>);
       case 'Thay nền': return (<><MainContent {...mainContentProps} /><ChangeBackgroundSettingsPanel settings={changeBgSettings} onSettingsChange={setChangeBgSettings} onProcess={handleChangeBg} {...commonSettingsProps} /></>);
       case 'Làm sạch nền': return (<><MainContent {...mainContentProps} /><CleanBackgroundSettingsPanel settings={cleanBgSettings} onSettingsChange={setCleanBgSettings} onProcess={handleCleanBg} {...commonSettingsProps} /></>);
+      case 'Làm sạch ảnh': return (<><MainContent {...mainContentProps} /><CleanImageSettingsPanel settings={cleanImageSettings} onSettingsChange={setCleanImageSettings} onProcess={handleCleanImage} {...commonSettingsProps} /></>);
       case 'Làm mịn da': return (<><MainContent {...mainContentProps} /><SkinSmoothingSettingsPanel settings={skinSmoothSettings} onSettingsChange={setSkinSmoothSettings} onProcess={handleSkinSmooth} {...commonSettingsProps} /></>);
       case 'Xoay thẳng mặt': return (<><MainContent {...mainContentProps} /><StraightenFaceSettingsPanel onProcess={handleStraightenFace} {...commonSettingsProps} /></>);
       case 'Ảnh đen trắng': return (<><MainContent {...mainContentProps} /><BWPhotoSettingsPanel settings={bwPhotoSettings} onSettingsChange={setBwPhotoSettings} onProcess={handleBWPhoto} {...commonSettingsProps} /></>);
