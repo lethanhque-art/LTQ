@@ -1,6 +1,6 @@
+
 import React from 'react';
 import { type UpscaleSettings } from '../types';
-import { UPSCALE_METHODS } from '../constants/upscaleMethods';
 
 interface UpscaleSettingsPanelProps {
   settings: UpscaleSettings;
@@ -28,21 +28,23 @@ export const UpscaleSettingsPanel: React.FC<UpscaleSettingsPanelProps> = ({ sett
     <aside className="w-80 bg-slate-800/50 border-l border-slate-700/50 flex flex-col flex-shrink-0">
       <div className="p-4 border-b border-slate-700/50">
         <h2 className="text-lg font-bold text-white">Super Enhancement & Upscale</h2>
-        <p className="text-xs text-slate-400 mt-1">Increase resolution and restore details to make your images sharper.</p>
+        <p className="text-xs text-slate-400 mt-1">Nâng cấp độ phân giải, làm nét và khôi phục chi tiết để làm cho hình ảnh của bạn sắc nét và rõ ràng.</p>
       </div>
       <div className="flex-1 p-4 space-y-6 overflow-y-auto">
         <div>
-          <label htmlFor="upscale-method" className="block text-sm font-medium text-slate-300 mb-2">Select Upscale Method</label>
-          <select 
-            id="upscale-method" 
-            value={settings.upscaleMethod} 
-            onChange={e => onSettingsChange({...settings, upscaleMethod: e.target.value})} 
-            className="w-full bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-sm text-white focus:ring-blue-500 focus:border-blue-500"
-          >
-            {UPSCALE_METHODS.map(method => (
-              <option key={method} value={method}>{method}</option>
-            ))}
-          </select>
+          <label htmlFor="level" className="block text-sm font-medium text-slate-300 mb-2">
+            Mức độ nâng cấp: <span className="font-bold text-blue-400">{settings.enhancementLevel}x</span>
+          </label>
+          <input
+            id="level"
+            type="range"
+            min="1"
+            max="4"
+            step="1"
+            value={settings.enhancementLevel}
+            onChange={e => onSettingsChange({ ...settings, enhancementLevel: parseInt(e.target.value, 10) })}
+            className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
+          />
         </div>
         
         <div className="pt-4 border-t border-slate-700/50">

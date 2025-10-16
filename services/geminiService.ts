@@ -48,7 +48,7 @@ export const editImage = async (base64ImageData: string, mimeType: string, promp
 export const generateVideoFromImage = async (base64ImageData: string, mimeType: string, prompt: string): Promise<string> => {
     try {
         let operation = await ai.models.generateVideos({
-            model: 'veo-2.0-generate-001',
+            model: 'veo-3.1-fast-generate-preview',
             prompt: prompt,
             image: {
                 imageBytes: base64ImageData,

@@ -15,6 +15,7 @@ const menuItems = [
   { name: 'Xoay thẳng mặt', icon: 'rotate' },
   { name: 'Ảnh đen trắng', icon: 'bw' },
   { name: 'Màu Preset', icon: 'filter' },
+  { name: 'Bộ lọc ảnh', icon: 'filter' },
   { name: 'Tự động chỉnh màu', icon: 'auto-color' },
   { name: 'Chỉnh sửa theo Prompt', icon: 'text' },
 ];

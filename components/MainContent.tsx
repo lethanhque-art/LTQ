@@ -131,6 +131,10 @@ export const MainContent: React.FC<MainContentProps> = ({
     if (file) {
       onImageUpload(file);
     }
+    // Reset the input value to allow re-uploading the same file
+    if (event.target) {
+      event.target.value = '';
+    }
   };
 
   const handleDownload = () => {
@@ -195,7 +199,7 @@ export const MainContent: React.FC<MainContentProps> = ({
       {processedImage && !animatedVideoUrl && (
         <div className="grid grid-cols-5 gap-4">
            <ActionButton 
-              icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3.5a.75.75 0 01.75.75v1.512c4.113.243 7.25 3.23 7.25 6.738 0 3.32-2.508 6.22-5.75 6.737v-1.512a.75.75 0 01-1.5 0v-1.512c-4.113-.243-7.25-3.23-7.25-6.737 0-3.32 2.508-6.22 5.75-6.738V4.25A.75.75 0 0110 3.5z" /></svg>}
+              icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3.5a.75.75 0 01.75.75v1.512c4.113.243 7.25 3.23 7.25 6.738 0 3.32-2.508 6.22-5.75 6.737v-1.512a.75.75 0 01-1.5 0v-1.512c-4.113-.243-7.25-3.23-7.25-6.737 0-3.32 2.508 6.22 5.75-6.738V4.25A.75.75 0 0110 3.5z" /></svg>}
               label="Tạo ảnh động 360°"
               onClick={onAnimate360}
               disabled={isPostProcessing}

@@ -19,6 +19,7 @@ import { BWPhotoSettingsPanel } from './components/BWPhotoSettingsPanel';
 import { PresetColorSettingsPanel } from './components/PresetColorSettingsPanel';
 import { AutoColorSettingsPanel } from './components/AutoColorSettingsPanel';
 import { PromptEditSettingsPanel } from './components/PromptEditSettingsPanel';
+import { ImageFilterSettingsPanel } from './components/ImageFilterSettingsPanel';
 
 import { editImage, generateVideoFromImage } from './services/geminiService';
 import * as types from './types';
@@ -42,6 +43,7 @@ const App: React.FC = () => {
   const [presetColorSettings, setPresetColorSettings] = useState<types.PresetColorSettings>(types.initialPresetColorSettings);
   const [autoColorSettings, setAutoColorSettings] = useState<types.AutoColorSettings>(types.initialAutoColorSettings);
   const [promptEditSettings, setPromptEditSettings] = useState<types.PromptEditSettings>(types.initialPromptEditSettings);
+  const [imageFilterSettings, setImageFilterSettings] = useState<types.ImageFilterSettings>(types.initialImageFilterSettings);
 
   // Common state
   const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -90,6 +92,7 @@ const App: React.FC = () => {
     setPresetColorSettings(types.initialPresetColorSettings);
     setAutoColorSettings(types.initialAutoColorSettings);
     setPromptEditSettings(types.initialPromptEditSettings);
+    setImageFilterSettings(types.initialImageFilterSettings);
 
     if (clearOriginal) {
       setOriginalImage(null);
@@ -143,8 +146,14 @@ const App: React.FC = () => {
   const handleSharpen = () => handleGenericEdit(generateSharpenPrompt);
 
   const generateUpscalePrompt = () => {
-    const promptParts = [`Super enhance and upscale this image using the "${upscaleSettings.upscaleMethod}" method...`];
-    if (upscaleSettings.removeWatermark) promptParts.push("Also, identify and completely remove any watermarks...");
+    const promptParts = [
+        `Perform a super enhancement on this image to improve its quality significantly. Increase its resolution by ${upscaleSettings.enhancementLevel}x.`,
+        `Unblur any motion or focus issues, remove digital noise and grain, and restore fine details, especially in faces and textures, to make the image incredibly sharp and clear.`,
+        `The final result should be of professional quality.`
+    ];
+    if (upscaleSettings.removeWatermark) {
+        promptParts.push("Also, identify and completely remove any watermarks, seamlessly filling in the background.");
+    }
     return promptParts.join(' ');
   };
   const handleUpscale = () => handleGenericEdit(generateUpscalePrompt);
@@ -179,11 +188,20 @@ const App: React.FC = () => {
   const generatePresetColorPrompt = () => `Apply a color grade to this image that matches the style of a "${presetColorSettings.preset}" preset. This should involve adjusting colors, saturation, contrast, and tones to create that specific aesthetic.`;
   const handlePresetColor = () => handleGenericEdit(generatePresetColorPrompt);
 
-  const generateAutoColorPrompt = () => `Automatically analyze and correct the colors in this image. Adjust the white balance, exposure, contrast, and saturation to make the photo look balanced, vibrant, and natural.`;
+  const generateAutoColorPrompt = () => {
+    let prompt = `Automatically analyze and correct the colors in this image. Adjust the white balance, exposure, contrast, and saturation to make the photo look balanced, vibrant, and natural.`;
+    if (autoColorSettings.fineTunePrompt) {
+        prompt += ` Additionally, apply the following fine-tuning: "${autoColorSettings.fineTunePrompt}".`;
+    }
+    return prompt;
+  };
   const handleAutoColor = () => handleGenericEdit(generateAutoColorPrompt);
 
   const generatePromptEditPrompt = () => promptEditSettings.prompt;
   const handlePromptEdit = () => handleGenericEdit(generatePromptEditPrompt);
+
+  const generateImageFilterPrompt = () => `Apply a "${imageFilterSettings.filter}" filter to this image.`;
+  const handleImageFilter = () => handleGenericEdit(generateImageFilterPrompt);
 
   // Post-processing handlers (unchanged)
   const handleUpscaleToRes = useCallback(async (resolution: '4K' | '8K' | '16K') => {
@@ -229,7 +247,8 @@ const App: React.FC = () => {
       case 'Xoay thẳng mặt': return (<><MainContent {...mainContentProps} /><StraightenFaceSettingsPanel onProcess={handleStraightenFace} {...commonSettingsProps} /></>);
       case 'Ảnh đen trắng': return (<><MainContent {...mainContentProps} /><BWPhotoSettingsPanel settings={bwPhotoSettings} onSettingsChange={setBwPhotoSettings} onProcess={handleBWPhoto} {...commonSettingsProps} /></>);
       case 'Màu Preset': return (<><MainContent {...mainContentProps} /><PresetColorSettingsPanel settings={presetColorSettings} onSettingsChange={setPresetColorSettings} onProcess={handlePresetColor} {...commonSettingsProps} /></>);
-      case 'Tự động chỉnh màu': return (<><MainContent {...mainContentProps} /><AutoColorSettingsPanel onProcess={handleAutoColor} {...commonSettingsProps} /></>);
+      case 'Tự động chỉnh màu': return (<><MainContent {...mainContentProps} /><AutoColorSettingsPanel settings={autoColorSettings} onSettingsChange={setAutoColorSettings} onProcess={handleAutoColor} {...commonSettingsProps} /></>);
+      case 'Bộ lọc ảnh': return (<><MainContent {...mainContentProps} /><ImageFilterSettingsPanel settings={imageFilterSettings} onSettingsChange={setImageFilterSettings} onProcess={handleImageFilter} {...commonSettingsProps} /></>);
       case 'Chỉnh sửa theo Prompt': return (<><MainContent {...mainContentProps} /><PromptEditSettingsPanel settings={promptEditSettings} onSettingsChange={setPromptEditSettings} onProcess={handlePromptEdit} {...commonSettingsProps} /></>);
       default: return <div className="p-8 text-center w-full">Coming Soon: {activeTool}</div>;
     }

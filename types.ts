@@ -1,4 +1,3 @@
-import { UPSCALE_METHODS } from './constants/upscaleMethods';
 
 // --- Existing Types ---
 
@@ -47,12 +46,12 @@ export const initialSharpenSettings: SharpenSettings = {
 };
 
 export interface UpscaleSettings {
-  upscaleMethod: string;
+  enhancementLevel: number;
   removeWatermark: boolean;
 }
 
 export const initialUpscaleSettings: UpscaleSettings = {
-  upscaleMethod: UPSCALE_METHODS[0],
+  enhancementLevel: 2,
   removeWatermark: false,
 };
 
@@ -140,9 +139,13 @@ export const initialPresetColorSettings: PresetColorSettings = {
   preset: 'Vibrant Summer',
 };
 
-export interface AutoColorSettings {}
+export interface AutoColorSettings {
+  fineTunePrompt: string;
+}
 
-export const initialAutoColorSettings: AutoColorSettings = {};
+export const initialAutoColorSettings: AutoColorSettings = {
+  fineTunePrompt: '',
+};
 
 export interface PromptEditSettings {
   prompt: string;
@@ -150,4 +153,12 @@ export interface PromptEditSettings {
 
 export const initialPromptEditSettings: PromptEditSettings = {
   prompt: 'make the sky look like a starry night',
+};
+
+export interface ImageFilterSettings {
+  filter: 'Sepia' | 'Grayscale' | 'Invert' | 'Posterize';
+}
+
+export const initialImageFilterSettings: ImageFilterSettings = {
+  filter: 'Sepia',
 };
