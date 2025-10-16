@@ -1,3 +1,4 @@
+
 import React, { useRef } from 'react';
 import { Spinner } from './Spinner';
 
@@ -13,6 +14,7 @@ interface MainContentProps {
   postProcessingError: string | null;
   onAnimate360: () => void;
   onUpscaleToRes: (resolution: '4K' | '8K' | '16K') => void;
+  onOpenWatermarkModal: () => void;
 }
 
 const UploadPlaceholder: React.FC<{ onClick: () => void }> = ({ onClick }) => (
@@ -119,6 +121,7 @@ export const MainContent: React.FC<MainContentProps> = ({
   postProcessingError,
   onAnimate360,
   onUpscaleToRes,
+  onOpenWatermarkModal,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -197,13 +200,19 @@ export const MainContent: React.FC<MainContentProps> = ({
       </div>
 
       {processedImage && !animatedVideoUrl && (
-        <div className="grid grid-cols-5 gap-4">
+        <div className="grid grid-cols-6 gap-4">
            <ActionButton 
               icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3.5a.75.75 0 01.75.75v1.512c4.113.243 7.25 3.23 7.25 6.738 0 3.32-2.508 6.22-5.75 6.737v-1.512a.75.75 0 01-1.5 0v-1.512c-4.113-.243-7.25-3.23-7.25-6.737 0-3.32 2.508 6.22 5.75-6.738V4.25A.75.75 0 0110 3.5z" /></svg>}
               label="Tạo ảnh động 360°"
               onClick={onAnimate360}
               disabled={isPostProcessing}
            />
+            <ActionButton
+              icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clipRule="evenodd" /></svg>}
+              label="Đóng dấu Watermark"
+              onClick={onOpenWatermarkModal}
+              disabled={isPostProcessing}
+            />
            <ActionButton
               icon={<span className="font-bold text-sm">4K</span>}
               label="Nâng cấp 4K"

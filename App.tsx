@@ -20,6 +20,8 @@ import { PresetColorSettingsPanel } from './components/PresetColorSettingsPanel'
 import { AutoColorSettingsPanel } from './components/AutoColorSettingsPanel';
 import { PromptEditSettingsPanel } from './components/PromptEditSettingsPanel';
 import { ImageFilterSettingsPanel } from './components/ImageFilterSettingsPanel';
+import { WatermarkModal } from './components/WatermarkModal';
+
 
 import { editImage, generateVideoFromImage } from './services/geminiService';
 import * as types from './types';
@@ -44,6 +46,8 @@ const App: React.FC = () => {
   const [autoColorSettings, setAutoColorSettings] = useState<types.AutoColorSettings>(types.initialAutoColorSettings);
   const [promptEditSettings, setPromptEditSettings] = useState<types.PromptEditSettings>(types.initialPromptEditSettings);
   const [imageFilterSettings, setImageFilterSettings] = useState<types.ImageFilterSettings>(types.initialImageFilterSettings);
+  const [watermarkSettings, setWatermarkSettings] = useState<types.WatermarkSettings>(types.initialWatermarkSettings);
+
 
   // Common state
   const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -54,6 +58,8 @@ const App: React.FC = () => {
   const [animatedVideoUrl, setAnimatedVideoUrl] = useState<string | null>(null);
   const [isPostProcessing, setIsPostProcessing] = useState<boolean>(false);
   const [postProcessingError, setPostProcessingError] = useState<string | null>(null);
+  const [isWatermarkModalOpen, setIsWatermarkModalOpen] = useState<boolean>(false);
+
 
   const fileToBase64 = (file: File): Promise<string> =>
     new Promise((resolve, reject) => {
@@ -93,6 +99,7 @@ const App: React.FC = () => {
     setAutoColorSettings(types.initialAutoColorSettings);
     setPromptEditSettings(types.initialPromptEditSettings);
     setImageFilterSettings(types.initialImageFilterSettings);
+    setWatermarkSettings(types.initialWatermarkSettings);
 
     if (clearOriginal) {
       setOriginalImage(null);
@@ -104,6 +111,7 @@ const App: React.FC = () => {
     setAnimatedVideoUrl(null);
     setIsPostProcessing(false);
     setPostProcessingError(null);
+    setIsWatermarkModalOpen(false);
   };
   
   const handleToolChange = (toolName: string) => {
@@ -203,7 +211,7 @@ const App: React.FC = () => {
   const generateImageFilterPrompt = () => `Apply a "${imageFilterSettings.filter}" filter to this image.`;
   const handleImageFilter = () => handleGenericEdit(generateImageFilterPrompt);
 
-  // Post-processing handlers (unchanged)
+  // Post-processing handlers
   const handleUpscaleToRes = useCallback(async (resolution: '4K' | '8K' | '16K') => {
       if (!processedImage) return;
       setIsPostProcessing(true); setPostProcessingError(null); setError(null);
@@ -215,6 +223,7 @@ const App: React.FC = () => {
           setProcessedImage(`data:image/png;base64,${resultBase64}`);
       } catch (err) { setPostProcessingError(`Failed to upscale to ${resolution}.`); } finally { setIsPostProcessing(false); }
   }, [processedImage]);
+
   const handleAnimate360 = useCallback(async () => {
     if (!processedImage) return;
     setIsPostProcessing(true); setPostProcessingError(null); setError(null); setAnimatedVideoUrl(null);
@@ -226,11 +235,85 @@ const App: React.FC = () => {
         setAnimatedVideoUrl(videoUrl);
     } catch (err) { setPostProcessingError('Failed to generate 360° animation.'); } finally { setIsPostProcessing(false); }
   }, [processedImage]);
+  
+  const handleApplyWatermark = useCallback(() => {
+    if (!processedImage) return;
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = processedImage;
+
+    img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            setPostProcessingError('Could not get canvas context.');
+            return;
+        }
+
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        const settings = watermarkSettings;
+        const fontSize = (canvas.width * settings.fontSize) / 100;
+        const rgbaColor = settings.color === 'White' 
+            ? `rgba(255, 255, 255, ${settings.opacity / 100})` 
+            : `rgba(0, 0, 0, ${settings.opacity / 100})`;
+
+        ctx.font = `bold ${fontSize}px Arial`;
+        ctx.fillStyle = rgbaColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        let x, y;
+        const margin = canvas.width * 0.02;
+
+        switch (settings.position) {
+            case 'Top Left':
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'top';
+                x = margin;
+                y = margin;
+                break;
+            case 'Top Right':
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'top';
+                x = canvas.width - margin;
+                y = margin;
+                break;
+            case 'Bottom Left':
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'bottom';
+                x = margin;
+                y = canvas.height - margin;
+                break;
+            case 'Center':
+                x = canvas.width / 2;
+                y = canvas.height / 2;
+                break;
+            case 'Bottom Right':
+            default:
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'bottom';
+                x = canvas.width - margin;
+                y = canvas.height - margin;
+                break;
+        }
+
+        ctx.fillText(settings.text, x, y);
+        setProcessedImage(canvas.toDataURL('image/png'));
+        setIsWatermarkModalOpen(false);
+    };
+
+    img.onerror = () => {
+        setPostProcessingError('Failed to load image for watermarking.');
+    };
+  }, [processedImage, watermarkSettings]);
 
 
   const renderActiveTool = () => {
-    // FIX: Pass the correct handler functions to the onAnimate360 and onUpscaleToRes props.
-    const mainContentProps = { originalImage, processedImage, isLoading, error, onImageUpload: handleImageUpload, animatedVideoUrl, onAnimatedVideoClose: () => setAnimatedVideoUrl(null), isPostProcessing, postProcessingError, onAnimate360: handleAnimate360, onUpscaleToRes: handleUpscaleToRes, };
+    const mainContentProps = { originalImage, processedImage, isLoading, error, onImageUpload: handleImageUpload, animatedVideoUrl, onAnimatedVideoClose: () => setAnimatedVideoUrl(null), isPostProcessing, postProcessingError, onAnimate360: handleAnimate360, onUpscaleToRes: handleUpscaleToRes, onOpenWatermarkModal: () => setIsWatermarkModalOpen(true) };
     const commonSettingsProps = { onReset: () => handleReset(true), isProcessing: isLoading, hasImage: !!originalImage };
 
     switch (activeTool) {
@@ -269,6 +352,13 @@ const App: React.FC = () => {
           {renderActiveTool()}
         </div>
       </main>
+      <WatermarkModal 
+        show={isWatermarkModalOpen}
+        settings={watermarkSettings}
+        onSettingsChange={setWatermarkSettings}
+        onApply={handleApplyWatermark}
+        onCancel={() => setIsWatermarkModalOpen(false)}
+      />
     </div>
   );
 };

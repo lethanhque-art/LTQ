@@ -162,3 +162,21 @@ export interface ImageFilterSettings {
 export const initialImageFilterSettings: ImageFilterSettings = {
   filter: 'Sepia',
 };
+
+// --- Watermark Types ---
+
+export interface WatermarkSettings {
+  text: string;
+  position: 'Top Left' | 'Top Right' | 'Bottom Left' | 'Bottom Right' | 'Center';
+  opacity: number;
+  fontSize: number;
+  color: 'White' | 'Black';
+}
+
+export const initialWatermarkSettings: WatermarkSettings = {
+  text: 'Your Watermark',
+  position: 'Bottom Right',
+  opacity: 50,
+  fontSize: 5,
+  color: 'White',
+};
