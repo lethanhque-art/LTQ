@@ -1,4 +1,3 @@
-
 // --- Existing Types ---
 
 export interface RestorationSettings {
@@ -48,7 +47,7 @@ export const initialEnhancementSettings: EnhancementSettings = {
 };
 
 export interface UpscaleSettings {
-  scale: 2 | 4;
+  scale: 2 | 4 | 8 | 16;
 }
 
 export const initialUpscaleSettings: UpscaleSettings = {

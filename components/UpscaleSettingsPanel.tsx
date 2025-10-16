@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { type UpscaleSettings } from '../types';
 
@@ -16,19 +15,19 @@ export const UpscaleSettingsPanel: React.FC<UpscaleSettingsPanelProps> = ({ sett
     <aside className="w-80 bg-slate-800/50 border-l border-slate-700/50 flex flex-col flex-shrink-0">
       <div className="p-4 border-b border-slate-700/50">
         <h2 className="text-lg font-bold text-white">Upscale ảnh</h2>
-        <p className="text-xs text-slate-400 mt-1">Tăng độ phân giải của hình ảnh lên 2x hoặc 4x so với kích thước gốc.</p>
+        <p className="text-xs text-slate-400 mt-1">Tăng độ phân giải của hình ảnh lên 2x, 4x, 8x hoặc 16x so với kích thước gốc.</p>
       </div>
       <div className="flex-1 p-4 space-y-6 overflow-y-auto">
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-2">
             Tỷ lệ phóng đại
           </label>
-          <div className="flex gap-2">
-            {( [2, 4] as const ).map(scale => (
+          <div className="grid grid-cols-2 gap-2">
+            {( [2, 4, 8, 16] as const ).map(scale => (
                  <button 
                     key={scale}
                     onClick={() => onSettingsChange({ ...settings, scale })}
-                    className={`flex-1 py-2 text-sm font-semibold rounded-md transition-colors ${settings.scale === scale ? 'bg-blue-600 text-white' : 'bg-slate-700 hover:bg-slate-600'}`}
+                    className={`py-2 text-sm font-semibold rounded-md transition-colors ${settings.scale === scale ? 'bg-blue-600 text-white' : 'bg-slate-700 hover:bg-slate-600'}`}
                  >
                     {scale}x
                  </button>
