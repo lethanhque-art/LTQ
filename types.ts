@@ -1,3 +1,29 @@
+
+// --- Batch Processing Types ---
+export interface ImageFile {
+  id: string;
+  file: File;
+  base64: string;
+}
+
+export type ProcessingStatus = 'pending' | 'processing' | 'done' | 'error';
+
+// --- Face Swap Types ---
+export interface PortraitImage {
+  id: string;
+  base64: string;
+}
+
+export interface FacePlacement {
+  id: string;
+  portraitId: string;
+  x: number; // center x as a percentage of image width
+  y: number; // center y as a percentage of image height
+  width: number; // width as a percentage of image width
+  height: number; // height as a percentage of image height
+}
+
+
 // --- Existing Types ---
 
 export interface RestorationSettings {

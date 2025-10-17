@@ -1,4 +1,5 @@
 
+
 import { GoogleGenAI, Modality } from "@google/genai";
 
 const API_KEY = process.env.API_KEY;
@@ -48,21 +49,28 @@ export const editImage = async (base64ImageData: string, mimeType: string, promp
 
 export const generateVideoFromImage = async (base64ImageData: string, mimeType: string, prompt: string): Promise<string> => {
     try {
-        let operation = await ai.models.generateVideos({
-            model: 'veo-3.1-generate-preview',
+        // Fix: Create a new instance for Veo models to ensure the latest API key is used.
+        const videoAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        let operation = await videoAi.models.generateVideos({
+            // Fix: Use the recommended model for general video generation.
+            model: 'veo-3.1-fast-generate-preview',
             prompt: prompt,
             image: {
                 imageBytes: base64ImageData,
                 mimeType: mimeType,
             },
             config: {
-                numberOfVideos: 1
+                numberOfVideos: 1,
+                // Fix: Add required config parameters for video generation from an image.
+                resolution: '720p',
+                aspectRatio: '16:9'
             }
         });
 
         while (!operation.done) {
             await new Promise(resolve => setTimeout(resolve, 10000));
-            operation = await ai.operations.getVideosOperation({ operation: operation });
+            // Fix: Use the new instance to poll the operation.
+            operation = await videoAi.operations.getVideosOperation({ operation: operation });
         }
 
         const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
@@ -71,7 +79,7 @@ export const generateVideoFromImage = async (base64ImageData: string, mimeType: 
             throw new Error("Video generation succeeded but no download link was found.");
         }
         
-        const response = await fetch(`${downloadLink}&key=${API_KEY}`);
+        const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
         if (!response.ok) {
             throw new Error(`Failed to download video: ${response.statusText}`);
         }
@@ -80,6 +88,7 @@ export const generateVideoFromImage = async (base64ImageData: string, mimeType: 
 
     } catch (error) {
         console.error("Error calling Veo API:", error);
-        throw new Error("Failed to generate video with Veo API.");
+        // Fix: Rethrow the original error to allow for specific error handling in the UI.
+        throw error;
     }
 };
