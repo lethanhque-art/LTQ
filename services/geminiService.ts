@@ -32,17 +32,30 @@ export const editImage = async (base64ImageData: string, mimeType: string, promp
       },
     });
 
-    for (const part of response.candidates[0].content.parts) {
-      if (part.inlineData) {
-        return part.inlineData.data;
-      }
+    // Defensive check to prevent crash if response is empty or blocked
+    if (response?.candidates?.[0]?.content?.parts) {
+        for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+                return part.inlineData.data;
+            }
+        }
+    }
+    
+    // If we reach here, no image was found. Check for block reason.
+    const blockReason = response?.promptFeedback?.blockReason;
+    if (blockReason) {
+      throw new Error(`Image generation failed due to safety settings: ${blockReason}. Please adjust your prompt or image.`);
     }
 
-    throw new Error("No image data found in the API response.");
+    throw new Error("No image data found in the API response. The request may have been blocked or resulted in an empty response.");
 
   } catch (error) {
     console.error("Error calling Gemini API:", error);
-    throw new Error("Failed to process image with Gemini API.");
+    // Re-throw the error to be handled by the caller, preserving specific messages.
+    if (error instanceof Error) {
+        throw error;
+    }
+    throw new Error("An unknown error occurred while processing the image with the Gemini API.");
   }
 };
 

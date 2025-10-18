@@ -1,5 +1,6 @@
 
 
+
 import React from 'react';
 import { type RestorationSettings, type PortraitImage } from '../types';
 
@@ -24,6 +25,8 @@ const PortraitUploader: React.FC<{
   portraits: PortraitImage[];
   onPortraitsChange: (portraits: PortraitImage[]) => void;
 }> = ({ portraits, onPortraitsChange }) => {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     
@@ -35,39 +38,53 @@ const PortraitUploader: React.FC<{
         reader.onerror = (error) => reject(error);
       });
 
-    const newPortraits: PortraitImage[] = [];
-    // Fix: Directly iterate over the FileList, as it is iterable.
-    // This avoids potential issues with `Array.from` on FileList in some environments.
-    for (const file of e.target.files) {
-      const base64 = await fileToBase64(file);
-      newPortraits.push({ id: crypto.randomUUID(), base64 });
-    }
+    const newPortraitPromises = Array.from(e.target.files).map(async (file: File) => {
+        const base64 = await fileToBase64(file);
+        return { id: crypto.randomUUID(), base64 };
+    });
+    const newPortraits = await Promise.all(newPortraitPromises);
     onPortraitsChange([...portraits, ...newPortraits]);
+    
+    // Reset file input
+    if(fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
   };
 
   const handleDragStart = (e: React.DragEvent<HTMLImageElement>, portraitId: string) => {
     e.dataTransfer.setData('text/plain', portraitId);
+  };
+  
+  const handleRemovePortrait = (idToRemove: string) => {
+      onPortraitsChange(portraits.filter(p => p.id !== idToRemove));
   };
 
   return (
     <div>
       <h3 className="text-sm font-medium text-slate-300 mb-2">Ghép mặt (kéo ảnh chân dung vào ảnh gốc)</h3>
       <div className="p-2 border border-dashed border-slate-600 rounded-md">
-        <div className="grid grid-cols-3 gap-2 mb-2">
-          {portraits.map(p => (
-            <img 
-              key={p.id}
-              src={p.base64}
-              alt="Portrait"
-              draggable
-              onDragStart={(e) => handleDragStart(e, p.id)}
-              className="w-full h-auto object-cover rounded aspect-square cursor-grab"
-            />
+        <div className={`grid grid-cols-3 gap-2 mb-2 ${portraits.length === 0 ? 'hidden' : ''}`}>
+          {portraits.map((p, index) => (
+            <div key={p.id} className="relative group">
+                <div className="absolute -top-1 -left-1 bg-blue-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold z-10">{index + 1}</div>
+                <img 
+                  src={p.base64}
+                  alt="Portrait"
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, p.id)}
+                  className="w-full h-auto object-cover rounded aspect-square cursor-grab"
+                />
+                <button 
+                  onClick={() => handleRemovePortrait(p.id)}
+                  className="absolute top-0 right-0 bg-red-500/80 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label="Remove portrait"
+                >&times;</button>
+            </div>
           ))}
         </div>
         <label className="w-full text-center text-xs py-2 block bg-slate-700 hover:bg-slate-600 rounded-md cursor-pointer">
           Tải ảnh chân dung
-          <input type="file" multiple accept="image/*" className="hidden" onChange={handleFileChange} />
+          <input ref={fileInputRef} type="file" multiple accept="image/*" className="hidden" onChange={handleFileChange} />
         </label>
       </div>
     </div>

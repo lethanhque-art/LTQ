@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useCallback } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { MainContent } from './components/MainContent';
@@ -159,7 +160,8 @@ const App: React.FC = () => {
         } catch (err) {
             console.error(`Error processing ${image.file.name}:`, err);
             setProcessingStatus(prev => ({...prev, [image.id]: 'error'}));
-            setError(`Failed to process ${image.file.name}.`);
+            const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+            setError(`Failed to process ${image.file.name}: ${errorMessage}`);
         }
       }
 
@@ -252,7 +254,8 @@ const App: React.FC = () => {
         setProcessingStatus({ [image.id]: 'done' });
       } catch (err) {
         console.error("Face swap failed:", err);
-        setError("An error occurred during face swap processing.");
+        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+        setError(`An error occurred during face swap processing: ${errorMessage}`);
         setProcessingStatus({ [image.id]: 'error' });
       } finally {
         setIsLoading(false);
@@ -263,10 +266,42 @@ const App: React.FC = () => {
   // --- PROMPT GENERATORS & HANDLERS ---
   
   const generateRestorationPrompt = () => {
-    let promptParts: string[] = ["Restore this old, damaged photograph."];
-    // (Implementation from before)
+    let promptParts: string[] = [`Restore this old, damaged photograph with a ${restorationSettings.level.toLowerCase()} level of restoration.`];
+
+    if (restorationSettings.options.restoreColor) {
+      promptParts.push('Restore the colors to be vibrant and natural.');
+    }
+    if (restorationSettings.options.removeYellowing) {
+        promptParts.push('Remove any yellowing or color fading.');
+    }
+    if (restorationSettings.options.redrawDetails) {
+        promptParts.push('Redraw and recover fine details in the faces and background.');
+    }
+     if (restorationSettings.options.redrawHair) {
+        promptParts.push('Enhance and redraw hair with fine details.');
+    }
+     if (restorationSettings.options.redrawClothing) {
+        promptParts.push('Reconstruct details in the clothing.');
+    }
+    if (restorationSettings.options.sharpenBackground) {
+        promptParts.push('Also sharpen the background details.');
+    }
+    if (restorationSettings.options.isAsian) {
+        promptParts.push('The subjects are Asian, ensure facial features and skin tones are appropriate, with black hair.');
+    }
+     if (restorationSettings.gender !== 'Tự động') {
+        promptParts.push(`The main subject is ${restorationSettings.gender === 'Nam' ? 'male' : 'female'}, approximately ${restorationSettings.age} years old.`);
+    }
+    if (restorationSettings.options.adhereToFace) {
+        promptParts.push('Adhere closely to the original facial structure.');
+    }
+    if (restorationSettings.fineTunePrompt) {
+        promptParts.push(`Additional user instructions: "${restorationSettings.fineTunePrompt}".`);
+    }
+
     return promptParts.join(' ');
   };
+
   const handleRestore = () => {
     if (!isBatchMode && facePlacements.length > 0) {
         generateCompositeAndRestore();
@@ -275,7 +310,13 @@ const App: React.FC = () => {
     }
   };
 
-  const generateEnhancementPrompt = () => { /* ... same as before ... */ return `Enhance this image with level ${enhancementSettings.level}.`; };
+  const generateEnhancementPrompt = () => {
+      const promptParts = [`Enhance this image with a high level of detail, using an intensity of ${enhancementSettings.level} out of 100.`];
+      if (enhancementSettings.removeWatermark) {
+          promptParts.push("Remove any watermarks or text overlays from the image.");
+      }
+      return promptParts.join(' ');
+  };
   const handleEnhance = () => handleGenericEdit(generateEnhancementPrompt);
 
   const generateUpscalePrompt = () => `Upscale this image, increasing its resolution by ${upscaleSettings.scale}x.`;
@@ -314,7 +355,13 @@ const App: React.FC = () => {
   const generatePresetColorPrompt = () => `Apply a "${presetColorSettings.preset}" color grade to this image.`;
   const handlePresetColor = () => handleGenericEdit(generatePresetColorPrompt);
 
-  const generateAutoColorPrompt = () => { /* ... same as before ... */ return `Automatically correct the colors in this image. ${autoColorSettings.fineTunePrompt}`; };
+  const generateAutoColorPrompt = () => {
+    let prompt = "Automatically correct the colors, brightness, and contrast in this image for a balanced and natural look.";
+    if (autoColorSettings.fineTunePrompt) {
+      prompt += ` Additionally, ${autoColorSettings.fineTunePrompt}.`;
+    }
+    return prompt;
+  };
   const handleAutoColor = () => handleGenericEdit(generateAutoColorPrompt);
 
   const generatePromptEditPrompt = () => promptEditSettings.prompt;
@@ -335,7 +382,10 @@ const App: React.FC = () => {
           const mimeType = processedImage.match(/:(.*?);/)?.[1] || 'image/png';
           const resultBase64 = await editImage(base64Data, mimeType, prompt);
           setProcessedImages(prev => ({...prev, [imageId]: `data:image/png;base64,${resultBase64}`}));
-      } catch (err) { setPostProcessingError(`Failed to upscale to ${resolution}.`); } finally { setIsPostProcessing(false); }
+      } catch (err) { 
+          const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+          setPostProcessingError(`Failed to upscale to ${resolution}: ${errorMessage}`);
+      } finally { setIsPostProcessing(false); }
   }, [processedImages, originalImages, isBatchMode]);
 
   const handleAnimate360 = useCallback(async () => {
@@ -370,7 +420,8 @@ const App: React.FC = () => {
             window.aistudio.openSelectKey();
           }
         } else {
-          setPostProcessingError('Failed to generate 360° animation.'); 
+          const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+          setPostProcessingError(`Failed to generate 360° animation: ${errorMessage}`); 
         }
     } finally { setIsPostProcessing(false); }
   }, [processedImages, originalImages, isBatchMode]);
@@ -404,7 +455,6 @@ const App: React.FC = () => {
 
         ctx.font = `bold ${fontSize}px Arial`;
         ctx.fillStyle = rgbaColor;
-        // ... (rest of canvas logic is same)
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         let x, y;
@@ -434,6 +484,7 @@ const App: React.FC = () => {
         processingStatus,
         isLoading, 
         error, 
+        setError,
         onImageUpload: handleImageUpload, 
         animatedVideoUrl, 
         onAnimatedVideoClose: () => setAnimatedVideoUrl(null), 

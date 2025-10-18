@@ -1,4 +1,5 @@
 
+
 // --- Batch Processing Types ---
 export interface ImageFile {
   id: string;
@@ -21,6 +22,7 @@ export interface FacePlacement {
   y: number; // center y as a percentage of image height
   width: number; // width as a percentage of image width
   height: number; // height as a percentage of image height
+  rotation: number; // rotation in degrees
 }
 
 
